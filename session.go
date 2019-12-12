@@ -181,8 +181,9 @@ func (this *SessionCM) ReConnect(address string) {
 				this.SetSession(fd, tcpconn)
 				fd++
 			}
+		} else {
+			logger.Infoln("current response connection is available")
 		}
-		logger.Infoln("current response connection is available")
 		time.Sleep(20 * time.Second)
 	}
 }
