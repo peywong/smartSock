@@ -88,7 +88,7 @@ func (this *CliSocket) ConnHandle(mcf *Mcf, sess *Session) {
 	for{
 		if mcf.SessionMaster.sessPtr == nil || mcf.SessionMaster.isAvailable == false {
 			time.Sleep(100 * time.Millisecond)
-			logger.Warnln("current connection is unavailable")
+			logger.Debugln("current connection is unavailable")
 		} else {
 			select {
 			case v := <- mcf.resource:
