@@ -2,6 +2,7 @@ package smartSock
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"strconv"
 	"time"
 )
@@ -14,7 +15,8 @@ type CommSocket struct {
 func (this *CommSocket) ConnHandle(msf *Msf, sess *Session) {
 	defer func() {
 		msf.SessionMaster.DelSessionById(sess.id)
-		logger.Warnf("connection id: %d, is closed", sess.id)
+		logger.Info("connection is closed",
+			zap.Uint32("Mcf.SessID", sess.id))
 		msf.EventPool.OnClose(sess.id)
 	}()
 	var errs error
@@ -24,24 +26,25 @@ func (this *CommSocket) ConnHandle(msf *Msf, sess *Session) {
 		readBuff := make([]byte, 1000)
 		n, err := sess.conn.Read(readBuff)
 		if err != nil {
-			logger.Errorln("socket read failed")
+			logger.Error("socket read failed",
+				zap.Uint32("Mcf.SessID", sess.id))
 			return
 		}
 		sess.UpdateTime()
-		tempBuff = append(tempBuff,readBuff[:n]...)
+		tempBuff = append(tempBuff, readBuff[:n]...)
 		for {
 			tempBuff, data, errs = this.Depack(tempBuff)
 			if errs != nil {
-				logger.Errorln("depack package fail")
+				logger.Error("depack package fail")
 				return
 			}
-			if data == nil {                        //message incomplete
+			if data == nil { //message incomplete
 				break
 			}
-			if len(data) == 0{                      //heart-beat message
+			if len(data) == 0 { //heart-beat message
 				continue
 			}
-			go msf.Hook(sess.id, data)                           //request message
+			go msf.Hook(sess.id, data) //request message
 			continue
 		}
 	}
@@ -51,51 +54,52 @@ func (this *CommSocket) Pack(message []byte) []byte {
 	return append(this.Int2Bytes(len(message)), message...)
 }
 
-func (this *CommSocket) Depack(buff []byte)([]byte, []byte, error) {
+func (this *CommSocket) Depack(buff []byte) ([]byte, []byte, error) {
 	length := len(buff)
 	if length < CONSTMLENGTH {
-		return buff,nil, nil
+		return buff, nil, nil
 	}
-	msgLength,err := this.Bytes2Int(buff[:CONSTMLENGTH])
+	msgLength, err := this.Bytes2Int(buff[:CONSTMLENGTH])
 	if err != nil {
 		return buff, nil, err
 	}
-	if msgLength == 0{
-		return buff[CONSTMLENGTH:],[]byte(""),nil
+	if msgLength == 0 {
+		return buff[CONSTMLENGTH:], []byte(""), nil
 	}
-	if length < CONSTMLENGTH + msgLength {
+	if length < CONSTMLENGTH+msgLength {
 		return buff, nil, nil
 	}
-	data := buff[CONSTMLENGTH:CONSTMLENGTH + msgLength]
-	buffs := buff[CONSTMLENGTH + msgLength:]
+	data := buff[CONSTMLENGTH : CONSTMLENGTH+msgLength]
+	buffs := buff[CONSTMLENGTH+msgLength:]
 	return buffs, data, nil
 }
 
-func (this *CommSocket) Int2Bytes(n int) []byte{
+func (this *CommSocket) Int2Bytes(n int) []byte {
 	return []byte(fmt.Sprintf("%04d", n))
 }
 
 func (this *CommSocket) Bytes2Int(b []byte) (int, error) {
 	return strconv.Atoi(string(b))
 }
+
 /*----------------------------------------------------*/
 
-type CliSocket struct{
+type CliSocket struct {
 }
 
 func (this *CliSocket) ConnHandle(mcf *Mcf, sess *Session) {
 	//defer mcf.SessionMaster.sessPtr.close()
-	for{
+	for {
 		if mcf.SessionMaster.sessPtr == nil || mcf.SessionMaster.isAvailable == false {
 			time.Sleep(100 * time.Millisecond)
-			logger.Debugln("current connection is unavailable")
+			logger.Debug("current connection is unavailable")
 		} else {
 			select {
-			case v := <- mcf.resource:
+			case v := <-mcf.targetCh:
 				v = mcf.SocketType.Pack(v)
 				err := mcf.SessionMaster.sessPtr.write(v)
 				if err != nil {
-					logger.Errorln("socket write failed, response connect will close")
+					logger.Error("socket write failed, response connect will close")
 					mcf.SessionMaster.SetFlagFalse()
 					continue
 				}
@@ -104,10 +108,10 @@ func (this *CliSocket) ConnHandle(mcf *Mcf, sess *Session) {
 	}
 }
 
-func (this *CliSocket) Pack(message []byte) []byte{
+func (this *CliSocket) Pack(message []byte) []byte {
 	return append(this.IntToBytes(len(message)), message...)
 }
 
-func (this *CliSocket)IntToBytes(n int) []byte {
-	return []byte(fmt.Sprintf("%04d",n))
+func (this *CliSocket) IntToBytes(n int) []byte {
+	return []byte(fmt.Sprintf("%04d", n))
 }

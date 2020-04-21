@@ -7,16 +7,16 @@ import (
 )
 
 type Session struct {
-	id uint32
-	conn net.Conn
+	id    uint32
+	conn  net.Conn
 	times int64
-	lock sync.Mutex
+	lock  sync.Mutex
 }
 
 func NewSession(id uint32, conn net.Conn) *Session {
 	return &Session{
-		id: id,
-		conn: conn,
+		id:    id,
+		conn:  conn,
 		times: time.Now().Unix(),
 	}
 }
@@ -33,9 +33,10 @@ func (this *Session) close() {
 func (this *Session) UpdateTime() {
 	this.times = time.Now().Unix()
 }
+
 /*---------------------session server manager-----------------------*/
 type SessionSM struct {
-	ser *Msf
+	ser      *Msf
 	sessions sync.Map
 }
 
@@ -107,7 +108,7 @@ func (this *SessionSM) HeartBeat(num int64) {
 			if !ok {
 				return true
 			}
-			if time.Now().Unix() - tem.times > num {
+			if time.Now().Unix()-tem.times > num {
 				this.DelSessionById(key.(uint32))
 			}
 			return true
@@ -117,17 +118,18 @@ func (this *SessionSM) HeartBeat(num int64) {
 
 /*------------------------------session client manager----------------------*/
 type SessionCM struct {
-	cli      *Mcf
-	sessPtr  *Session
+	cli         *Mcf
+	sessPtr     *Session
 	isAvailable bool
-	lock sync.Mutex
+	lock        sync.Mutex
 }
+
 func NewSessionCM(mcf *Mcf) *SessionCM {
 	if mcf == nil {
 		return nil
 	}
 	return &SessionCM{
-		cli:    mcf,
+		cli:         mcf,
 		isAvailable: false,
 	}
 }
@@ -145,7 +147,7 @@ func (this *SessionCM) SetSession(fd uint32, conn net.Conn) {
 	sess := NewSession(fd, conn)
 	this.sessPtr = sess
 	this.SetFlagTrue()
-	logger.Infoln("create socket connection to tip")
+	logger.Info("create socket connection to tip")
 }
 func (this *SessionCM) WriteToSev(msg []byte) bool {
 	msg = this.cli.SocketType.Pack(msg)
@@ -157,16 +159,16 @@ func (this *SessionCM) WriteToSev(msg []byte) bool {
 	}
 	return false
 }
-func (this *SessionCM) TimedSend(num int64) {
+func (this *SessionCM) TimedSend(sp time.Duration) {
 	msg := this.cli.SocketType.Pack([]byte(""))
 	for {
-		if this.isAvailable{
+		if this.isAvailable {
 			err := this.sessPtr.write(msg)
 			if err != nil {
 				this.SetFlagFalse()
-				logger.Errorln("failed to send heartbeat package")
+				logger.Error("failed to send heartbeat package")
 			} else {
-				logger.Infoln("send heartbeat package to tip")
+				logger.Info("send heartbeat package to tip")
 			}
 		}
 		time.Sleep(20 * time.Second)
@@ -177,16 +179,13 @@ func (this *SessionCM) ReConnect(address string) {
 	for {
 		if this.isAvailable == false {
 			if tcpconn, err := net.Dial("tcp", address); err == nil {
-				logger.Infoln("response socket create")
+				logger.Info("response socket create")
 				this.SetSession(fd, tcpconn)
 				fd++
 			}
 		} else {
-			logger.Infoln("current response connection is available")
+			logger.Info("current response connection is available")
 		}
 		time.Sleep(20 * time.Second)
 	}
 }
-
-
-

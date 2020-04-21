@@ -1,11 +1,11 @@
 package smartSock
 
 import (
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
-var logger *logrus.Logger
+var logger *zap.Logger
 
-func SetLogMode(l *logrus.Logger) {
+func SetLogMode(l *zap.Logger) {
 	logger = l
 }

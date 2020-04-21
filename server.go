@@ -10,18 +10,18 @@ type SocketTypes interface {
 }
 
 type Msf struct {
-	EventPool *RoutersMap
+	EventPool     *RoutersMap
 	SessionMaster *SessionSM
-	SocketType SocketTypes
+	SocketType    SocketTypes
 	//add destination chan []byte correspond to communication mode, 1 in 1 out specially.
 	des chan []byte
 }
 
 func NewMsf(socketType SocketTypes, ch chan []byte) *Msf {
 	msf := &Msf{
-		EventPool:     NewRoutersMap(),
-		SocketType:    socketType,
-		des:           ch,
+		EventPool:  NewRoutersMap(),
+		SocketType: socketType,
+		des:        ch,
 	}
 	msf.SessionMaster = NewSessionSM(msf)
 	return msf
@@ -30,15 +30,15 @@ func NewMsf(socketType SocketTypes, ch chan []byte) *Msf {
 func (this *Msf) Listening(address string) {
 	tcpListen, err := net.Listen("tcp", address)
 	if err != nil {
-		logger.Errorln("failed to create socket listener")
+		logger.Error("failed to create socket listener")
 		panic(err)
 	}
-	go this.SessionMaster.HeartBeat(40)              //hold heartbeat 40s
+	go this.SessionMaster.HeartBeat(40) //hold heartbeat 40s
 	fd := uint32(0)
 	for {
 		conn, err := tcpListen.Accept()
 		if err != nil {
-			logger.Errorln("tcp server accept connection fail")
+			logger.Error("tcp server accept connection fail")
 			continue
 		}
 		if this.EventPool.OnHand(fd, conn) == false {
@@ -50,7 +50,7 @@ func (this *Msf) Listening(address string) {
 	}
 }
 
-func (this *Msf) Hook(fd uint32, requestData []byte){
+func (this *Msf) Hook(fd uint32, requestData []byte) {
 	this.EventPool.OnMessage(fd, requestData)
 	if len(this.EventPool.methods) == 0 {
 		return
@@ -67,4 +67,5 @@ func (this *Msf) Hook(fd uint32, requestData []byte){
 	result = this.EventPool.methods[AFTERACTION](fd, requestData)
 	return
 }
+
 /*--------------------------------------------------*/
