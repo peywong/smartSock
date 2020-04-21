@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aaa63974-7e60-4040-b52c-8536c04269b7" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/client.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hcomsocket.go" beforeDir="false" afterPath="$PROJECT_DIR$/hcomsocket.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/log.go" beforeDir="false" afterPath="$PROJECT_DIR$/log.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/session.go" beforeDir="false" afterPath="$PROJECT_DIR$/session.go" afterDir="false" />
-    </list>
+    <list default="true" id="aaa63974-7e60-4040-b52c-8536c04269b7" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,6 +68,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="replace logrus with uber.zap&#10;embellish log output&#10;change name of variables" />
+    <option name="LAST_COMMIT_MESSAGE" value="replace logrus with uber.zap&#10;embellish log output&#10;change name of variables" />
   </component>
   <component name="VgoProject">
     <exec-path>D:\go\bin\vgo.exe</exec-path>
